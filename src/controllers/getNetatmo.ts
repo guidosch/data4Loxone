@@ -1,17 +1,16 @@
 import { RequestHandler } from 'express'
-import config from '../config'
+import AxiosInterceptor from '../logic/netatmo/netatmo2'
+import { MainStation } from '../logic/netatmo/devices';
 
-/**
- * Health check endpoint
- */
-const getRoot: RequestHandler = (req, res) => {
-    res.status(200).json({
-        name: config.name,
-        description: config.description,
-        version: config.version,
-        //extrac dynamic routes from express router
-        routes: ["/", "/netatmo", "/apistatus", "/stationsdata", "/sunshinenext6hours", "/thunderstormwarning" ]
-    });
+const axiosInterceptor = new AxiosInterceptor();
+let config = {
+    params: MainStation
+}
+
+const getRoot: RequestHandler = async (req, res) => {
+    let response = await axiosInterceptor.get('api/getstationsdata', config)
+    res.status(200).json(response.data
+    );
 }
 
 export default getRoot
