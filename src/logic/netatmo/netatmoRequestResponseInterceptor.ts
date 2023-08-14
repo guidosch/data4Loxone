@@ -1,45 +1,51 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { AuthConf, TokenResponse } from '../../types/auth';
-import { MainStation } from './devices';
+
+/**
+ * config: Set base path for tokens.json and authConf.json
+ */
+const basePath: string = __dirname.replace('/src/logic/netatmo', '');
 
 export default class AxiosInterceptor {
     private axiosInstance: AxiosInstance;
-    private auth: AuthConf;
-    private tokens: TokenResponse;
 
     constructor() {
         this.axiosInstance = axios.create();
         this.axiosInstance.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
         this.axiosInstance.defaults.baseURL = 'https://api.netatmo.com/';
 
-        this.auth = JSON.parse(readFileSync('/Users/guidoschnider/programming/data4Loxone/authConf.json', 'utf8'));
-        this.tokens = JSON.parse(readFileSync('/Users/guidoschnider/programming/data4Loxone/tokens.json', 'utf8'));
+
 
         // Add request interceptor
         this.axiosInstance.interceptors.request.use((config) => {
-            if (config.headers && this.tokens && this.tokens.access_token) {
-                config.headers['Authorization'] = `Bearer ${this.tokens.access_token}`;
+            let tokens = readTokens();
+            if (config.headers && tokens && tokens.access_token) {
+                config.headers['Authorization'] = `Bearer ${tokens.access_token}`;
             }
             return config;
         },
             this.requestErrorInterceptor
         );
+
+
         // Add response interceptor
         this.axiosInstance.interceptors.response.use(
             this.responseInterceptor,
-            /** */
+            /** 
+             * may be try to auto resend the request
+             * https://stackoverflow.com/questions/51563821/axios-interceptors-retry-original-request-and-access-original-promise
+             * 
+            */
             async function error(error) {
                 if (error.response && error.response.status === 403) {
                     console.log('Received 403 Forbidden response');
-                    let auth: AuthConf = JSON.parse(readFileSync('/Users/guidoschnider/programming/data4Loxone/authConf.json', 'utf8'));
-                    //console.log("Auth: "+JSON.stringify(auth));
-                    let tokens: TokenResponse = JSON.parse(readFileSync('/Users/guidoschnider/programming/data4Loxone/tokens.json', 'utf8'));
+                    let auth = readAuthConf();
+                    let tokens = readTokens();
                     if (tokens && tokens.refresh_token) {
                         auth.refresh_token = tokens.refresh_token;
                     }
                     try {
-                        console.log("Authenticated via post to endpoint oauth2/token");
                         axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
                         const { data } = await axios.create().post('https://api.netatmo.com/oauth2/token', {
                             grant_type: auth.grant_type,
@@ -47,17 +53,15 @@ export default class AxiosInterceptor {
                             client_id: auth.client_id,
                             client_secret: auth.client_secret
                         });
-                        //save token to file
-                        console.log("Save token to file"+JSON.stringify(data));
-                        writeFileSync('tokens.json', JSON.stringify(data));
-                        console.log("Authenticated and token saved to file");
+                        //write tokens and update refresh token in authConf
+                        writeTokens(data, auth);
                         return data.access_token;
-                
+
                     } catch (err: any) {
-                        console.error("Error authenticate status: "+JSON.stringify(err));
+                        console.error("Error authenticate status: " + JSON.stringify(err));
                     }
                 }
-                console.log("Error: "+JSON.stringify(error));
+                console.error("Error: " + JSON.stringify(error));
                 return Promise.reject(error);
             })
     }
@@ -71,20 +75,33 @@ export default class AxiosInterceptor {
     }
 
 
+
+    /**
+     * Asyc get request with auth. token interceptor and 403 refresh token interceptor
+     * 
+     * @param url 
+     * @param config 
+     * @returns 
+     */
     async get(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
         return this.axiosInstance.get(url, config);
     }
 
-    
 }
 
-/** 
-// Usage
-const axiosInterceptor = new AxiosInterceptor();
-let config = {
-    params: MainStation
+function readTokens(): TokenResponse {
+    let tokens = JSON.parse(readFileSync(basePath + '/tokens.json', 'utf8'));
+    return tokens;
 }
-let response = await axiosInterceptor.get('api/getstationsdata', config)
-console.log(response);
 
-*/
+function readAuthConf(): AuthConf {
+    let auth = JSON.parse(readFileSync(basePath + '/authConf.json', 'utf8'));
+    return auth;
+}
+
+function writeTokens(tokens: TokenResponse, auth: AuthConf) {
+    auth.refresh_token = tokens.refresh_token;
+    writeFileSync(basePath + '/tokens.json', JSON.stringify(tokens));
+    writeFileSync(basePath + '/authConf.json', JSON.stringify(auth));
+}
+

@@ -1,3 +1,6 @@
+tokens.json
+authConf.json
+
 # build directory
 dist
 

@@ -9,8 +9,8 @@ const getRoot: RequestHandler = (req, res) => {
         name: config.name,
         description: config.description,
         version: config.version,
-        //extrac dynamic routes from express router
-        routes: ["/", "/netatmo", "/apistatus", "/stationsdata", "/sunshinenext6hours", "/thunderstormwarning" ]
+        //todo: extrac dynamic routes from express router
+        routes: ["/", "/netatmo", "/apistatus", "/stationsdata", "/sunshinenext6hours", "/thunderstormwarning", "/test" ]
     });
 }
 
