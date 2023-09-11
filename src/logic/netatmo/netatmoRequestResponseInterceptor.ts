@@ -15,8 +15,6 @@ export default class AxiosInterceptor {
         this.axiosInstance.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
         this.axiosInstance.defaults.baseURL = 'https://api.netatmo.com/';
 
-
-
         // Add request interceptor
         this.axiosInstance.interceptors.request.use((config) => {
             let tokens = readTokens();
@@ -73,8 +71,6 @@ export default class AxiosInterceptor {
     responseInterceptor(response: AxiosResponse): AxiosResponse {
         return response;
     }
-
-
 
     /**
      * Asyc get request with auth. token interceptor and 403 refresh token interceptor

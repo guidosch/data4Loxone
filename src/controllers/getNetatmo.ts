@@ -2,7 +2,7 @@ import { RequestHandler } from 'express'
 import AxiosInterceptor from '../logic/netatmo/netatmoRequestResponseInterceptor'
 import { MainStation } from '../logic/netatmo/devices';
 import { ModuleDashboardData, Stationsdata } from '../types/stationsData';
-import { NetatmoStationsData } from '../types/netatmoStationsData4Loxone';
+import { NetatmoStationsData, emtpyNetatmoStationsData } from '../types/netatmoStationsData4Loxone';
 
 const axiosInterceptor = new AxiosInterceptor();
 const config = {
@@ -17,7 +17,8 @@ const getRoot: RequestHandler = async (req, res) => {
     
     if (response.status !== 200) {
         error = response.status + " " + response.statusText
-        res.status(response.status).json({ error: error });
+        emtpyNetatmoStationsData.error = error;
+        res.status(response.status).json(emtpyNetatmoStationsData);
     } else {
         const stationsdata: Stationsdata = response.data.body.devices[0];
 
@@ -27,13 +28,13 @@ const getRoot: RequestHandler = async (req, res) => {
         let netatmoStationsData: NetatmoStationsData = {
             temperatureMain: stationsdata.dashboard_data.Temperature,
             co2Main: stationsdata.dashboard_data.CO2,
-            humidityMain: stationsdata.dashboard_data.Humidity,
+            humidityMain: stationsdata.dashboard_data.Humidity -5 ,
             temperatureRoom: roomModule?.Temperature || 23,
             co2Room: roomModule?.CO2 || 500,
             humidityRoom: roomModule?.Humidity || 50,
             temperatureOutside: outdoorModule?.Temperature || 20,
             humidityOutside: outdoorModule?.Humidity || 50,
-            lastUpdateSecondsAgo: 60,
+            lastUpdateSecondsAgo: Math.round(Date.now() / 1000) - (stationsdata.dashboard_data.time_utc),
             error: error
         }
         res.status(200).json(netatmoStationsData);
