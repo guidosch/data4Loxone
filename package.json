@@ -1,8 +1,8 @@
 {
-  "name": "node-express-typescript-starter-2022",
-  "version": "0.3.3",
-  "description": "A minimally opinionated typescript & express starter for 2022 & 2023",
-  "author": "Carter Adams <carteradams@protonmail.com>",
+  "name": "Data4Loxone",
+  "version": "0.1.0",
+  "description": "Aggregates data from various sources and sends it to a Loxone Miniserver, Particle Cloud and Lametric Time.",
+  "author": "Guido Schnider <guido.schnider@gmail.com>",
   "license": "MIT",
   "main": "dist/src/index.js",
   "scripts": {

@@ -1,4 +1,7 @@
-# 
+# Data4Loxone
+
+Gather data from different sources and serve on HTTP endpoint for Loxone and push also to Particle Cloud and LametricTime display.
+
 ## Usage:
 
 You should copy `.env.sample` to `.env` and then:
@@ -17,8 +20,13 @@ You should copy `.env.sample` to `.env` and then:
 
 A `GET` request to `/` will respond with a description of the application.
 
-A `POST` request to `/` will echo any json sent in the request body.
+## Config over .env
+All config options are in the .env file. It will be loaded during runtime (by dotenv) package together with the `config.ts` file. The .env file will not be copied to the image for security reasons and you have to pass the variables like this:
 
-## Help out
+`docker run --env-file ./env myImage bash`
 
-Feedback and contributions are very welcome.
+## Build the Docker image
+https://nodejs.org/en/docs/guides/nodejs-docker-webapp
+
+### Run the docker image
+`docker run --env-file ./env myImage bash`

@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express'
 import AxiosInterceptor from '../logic/netatmoRequestResponseInterceptor'
 import { MainStation } from '../logic/devices';
-import { ModuleDashboardData, Stationsdata, Module } from '../types/stationsData';
+import { Stationsdata, Module } from '../types/stationsData';
 import { NetatmoStationsHealthData } from '../types/netatmoHealthData4Loxone';
 
 const axiosInterceptor = new AxiosInterceptor();

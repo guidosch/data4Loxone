@@ -13,8 +13,7 @@
     "declaration": true
   },
   "include": [
-    "src/tests/**/*.ts"
-, "netatmo.ts", "index.ts"  ],
+    "src/tests/**/*.ts", "index.ts"  ],
   "files": [
     "src/index.ts"
   ]

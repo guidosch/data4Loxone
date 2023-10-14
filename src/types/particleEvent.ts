@@ -5,9 +5,16 @@ export interface ParticleEvent {
     ttl: number;
 }
 
-export const particleEvent = (): ParticleEvent => ({
+export var particleEventSolarPower = (): ParticleEvent => ({
     name: "hasUnusedSolarPower",
     data: "false",
+    private: true,
+    ttl: 60
+});
+
+export var particleEventMeteoData = (): ParticleEvent => ({
+    name: "meteodata",
+    data: "",
     private: true,
     ttl: 60
 });

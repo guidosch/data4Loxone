@@ -5,12 +5,14 @@ import axios from 'axios';
 import moment from 'moment';
 
 const MAX_DATA_AGE = 25 * 60 * 1000;
+const SMA_URL = process.env["SMA_OPENDATA_URL"] || "url not set";
+
 /**
- * Health check endpoint
+ * Health check endpoint which checks whether meteo data is not too old.
  */
 const getRoot: RequestHandler = (req, res) => {
 
-    axios.get<MeteoOpenData>('http://192.168.2.40:4712/smn/SMA').then(function (response) {
+    axios.get<MeteoOpenData>(SMA_URL).then(function (response) {
         if (response.status == 200) {
             let data: MeteoOpenData = response.data;
             let result = <MeteoOpenDataAPIStatus>{};
