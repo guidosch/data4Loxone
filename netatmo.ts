@@ -2,7 +2,7 @@
 
 import axios, { AxiosError } from 'axios';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { MainStation } from './src/logic/netatmo/devices';
+import { MainStation } from './src/logic/devices';
 import { AuthConf, TokenResponse } from './src/types/auth';
 import { ModuleDashboardData, Stationsdata } from './src/types/stationsData';
 import { NetatmoStationsData } from './src/types/netatmoStationsData4Loxone';

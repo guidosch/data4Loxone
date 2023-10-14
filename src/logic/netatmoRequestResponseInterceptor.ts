@@ -1,11 +1,13 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { AuthConf, TokenResponse } from '../../types/auth';
+import { AuthConf, TokenResponse } from '../types/auth';
 
 /**
  * config: Set base path for tokens.json and authConf.json
  */
-const basePath: string = __dirname.replace('/src/logic/netatmo', '');
+const basePath: string = __dirname.replace('/src/logic', '');
+const tokenFile = '/tokens.json';
+const authConfFile = '/authConf.json';
 
 export default class AxiosInterceptor {
     private axiosInstance: AxiosInstance;
@@ -86,18 +88,18 @@ export default class AxiosInterceptor {
 }
 
 function readTokens(): TokenResponse {
-    let tokens = JSON.parse(readFileSync(basePath + '/tokens.json', 'utf8'));
+    let tokens = JSON.parse(readFileSync(basePath + tokenFile, 'utf8'));
     return tokens;
 }
 
 function readAuthConf(): AuthConf {
-    let auth = JSON.parse(readFileSync(basePath + '/authConf.json', 'utf8'));
+    let auth = JSON.parse(readFileSync(basePath + authConfFile, 'utf8'));
     return auth;
 }
 
 function writeTokens(tokens: TokenResponse, auth: AuthConf) {
     auth.refresh_token = tokens.refresh_token;
-    writeFileSync(basePath + '/tokens.json', JSON.stringify(tokens));
-    writeFileSync(basePath + '/authConf.json', JSON.stringify(auth));
+    writeFileSync(basePath + tokenFile, JSON.stringify(tokens));
+    writeFileSync(basePath + authConfFile, JSON.stringify(auth));
 }
 

@@ -1,5 +1,5 @@
-tokens.json
-authConf.json
+tokens*.json
+authConf*.json
 
 # build directory
 dist

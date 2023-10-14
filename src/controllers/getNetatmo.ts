@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express'
-import AxiosInterceptor from '../logic/netatmo/netatmoRequestResponseInterceptor'
-import { MainStation } from '../logic/netatmo/devices';
+import AxiosInterceptor from '../logic/netatmoRequestResponseInterceptor'
+import { MainStation } from '../logic/devices';
 import { ModuleDashboardData, Stationsdata } from '../types/stationsData';
 import { NetatmoStationsData, emtpyNetatmoStationsData } from '../types/netatmoStationsData4Loxone';
 
