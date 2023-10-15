@@ -26,7 +26,13 @@ All config options are in the .env file. It will be loaded during runtime (by do
 `docker run --env-file ./env myImage bash`
 
 ## Build the Docker image
+`docker build . -t guidosch/node-app-data4loxone`
+
 https://nodejs.org/en/docs/guides/nodejs-docker-webapp
 
 ### Run the docker image
-`docker run --env-file ./env myImage bash`
+Run in background (-d param). App inside container runs on port 3000
+`docker run -p 8081:3000 -d --env-file ./env -it --rm -v tokenStorage:/usr/app/tokenStorage guidosch/node-app-data4loxone`
+
+Run and inspect container (Bash is not installed on alpine linux by default)
+`docker run -p 8081:3000 --env-file .env -it --rm -v tokenStorage:/usr/app/tokenStorage guidosch/node-app-data4loxone /bin/sh --login`

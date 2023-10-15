@@ -5,7 +5,7 @@ import { AuthConf, TokenResponse } from '../types/auth';
 /**
  * config: Set base path for tokens.json and authConf.json
  */
-const basePath: string = __dirname.replace('/src/logic', '');
+const basePath: string = __dirname.replace('/src/logic', '/tokenStorage');
 const tokenFile = '/tokens.json';
 const authConfFile = '/authConf.json';
 

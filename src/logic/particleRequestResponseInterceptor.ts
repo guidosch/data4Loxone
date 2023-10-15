@@ -6,7 +6,7 @@ import { ParticleEvent } from '../types/particleEvent';
 /**
  * config: Set base path for files
  */
-const basePath: string = __dirname.replace('/src/logic', '');
+const basePath: string = __dirname.replace('/src/logic', '/tokenStorage');
 const tokenFile = '/tokensParticle.json';
 const particle_username = process.env["PARTICLE_USERNAME"]
 const particle_password = process.env["PARTICLE_PASSWORD"]
