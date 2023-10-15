@@ -22,7 +22,7 @@ const axiosInstance = axios.create({
 
 const particleHttpClient = new ParticleAxiosIntercepter();
 
-export class SolarEdgeToParticleHandler {
+export class ParticleHandler {
 
 
     /**
@@ -33,7 +33,7 @@ export class SolarEdgeToParticleHandler {
             if (response.status == 200) {
                 let data: MeteoOpenData = response.data;
                 let event = particleEventMeteoData();
-                event.data = SolarEdgeToParticleHandler.mapDataToResult(data);
+                event.data = ParticleHandler.mapDataToResult(data);
                 
                 particleHttpClient.post('/v1/devices/events', event)
                     .then(function (response: AxiosResponse): void {
@@ -90,7 +90,7 @@ export class SolarEdgeToParticleHandler {
         //get data from solaredge
         axiosInstance.get(`/site/${SITE}/currentPowerFlow?api_key=${API_KEY}`).then(function (response) {
             if (response.status == 200) {
-                let hasSolarPower = SolarEdgeToParticleHandler.hasUnusedSolasPower(response.data);
+                let hasSolarPower = ParticleHandler.hasUnusedSolasPower(response.data);
                 let event = particleEventSolarPower();
                 event.data = hasSolarPower.toString();
                 

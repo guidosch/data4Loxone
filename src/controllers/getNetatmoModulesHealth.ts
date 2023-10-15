@@ -34,7 +34,6 @@ const getRoot: RequestHandler = async (req, res) => {
             moduleOutdoorName: outdoorModule?.module_name || '',
             moduleOutdoorOnline: outdoorModule?.reachable ? 1 : 0
         }
-
         res.status(200).json(netatmoStationsHealthData);
     }
 

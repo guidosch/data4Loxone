@@ -5,6 +5,10 @@ import getApiStatus from '../controllers/getApiStatus'
 import getNetatmoModulesHealth from '../controllers/getNetatmoModulesHealth'
 import getOpenweathermapData from '../controllers/getOpenweathermapData'
 import getTest from '../controllers/getTest'
+import testNetatmoToLametric from '../controllers/testNetatmoToLametric'
+import testMeteoDataToLaMetric from '../controllers/testMeteoDataToLaMetric'
+import testMeteoDataForParticle from '../controllers/testMeteoDataForParticle'
+import testSolarPowerDataForParticle from '../controllers/testSolarPowerDataForParticle'
 
 const root = express.Router()
 
@@ -25,5 +29,11 @@ root.get('/thunderstormwarning', getOpenweathermapData)
 
 //not in use yet
 root.get('/test', getTest)
+
+//test scheduled code
+root.get('/testNetatmoToLametric', testNetatmoToLametric)
+root.get('/testMeteoDataToLaMetric', testMeteoDataToLaMetric)
+root.get('/testmeteoDataForParticle', testMeteoDataForParticle)
+root.get('/testSolarPowerDataForParticle', testSolarPowerDataForParticle)
 
 export default root

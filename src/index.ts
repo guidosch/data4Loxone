@@ -2,7 +2,7 @@ import app from './app'
 import config from './config'
 import schedule from 'node-schedule';
 import { LametricHandler } from './staticHandlers/lametricHandler';
-import { SolarEdgeToParticleHandler as ParticleHandler } from './staticHandlers/solarEdgeToParticleHandler';
+import { ParticleHandler as ParticleHandler } from './staticHandlers/particleHandler';
 
 app.listen(config.port, () => {
     console.log(`🚀 ${config.name} ${config.version} 🚀`)
@@ -26,15 +26,13 @@ schedule.scheduleJob("40 * * * * *", function () {
 });
 
 // send sma station data to particle cloud API for devices in Ergon office
-//schedule.scheduleJob("*/20 * * * *", function () {
-    schedule.scheduleJob("30 * * * * *", function () {
-    //ParticleHandler.meteoDataForParticle();
+schedule.scheduleJob("*/20 * * * *", function () {
+    ParticleHandler.meteoDataForParticle();
 });
 
 // send solaredge PV power to particle cloud for device in KellerV2.1 T77
 
-//schedule.scheduleJob("*/30 * * * *", function () {
-    schedule.scheduleJob("40 * * * * *", function () {
+schedule.scheduleJob("*/30 * * * *", function () {
     ParticleHandler.solarPowerDataForParticle();
 });
 

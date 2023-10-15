@@ -10,7 +10,8 @@ const getRoot: RequestHandler = (req, res) => {
         description: config.description,
         version: config.version,
         //todo: extrac dynamic routes from express router
-        routes: ["/", "/netatmo", "/apistatus", "/stationsdata", "/sunshinenext6hours", "/thunderstormwarning", "/test" ]
+        routes: ["/", "/netatmo", "/apistatus", "/stationsdata", "/sunshinenext6hours", "/thunderstormwarning", "/test",
+            "/testNetatmoToLametric", "/testMeteoDataToLaMetric", "/testmeteoDataForParticle", "/testSolarPowerDataForParticle"]
     });
 }
 

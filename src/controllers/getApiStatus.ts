@@ -4,7 +4,7 @@ import { MeteoOpenDataAPIStatus } from '../types/metoDataApiStatus'
 import axios from 'axios';
 import moment from 'moment';
 
-const MAX_DATA_AGE = 25 * 60 * 1000;
+const MAX_DATA_AGE = 25 * 60 * 1000; // 25 minutes
 const SMA_URL = process.env["SMA_OPENDATA_URL"] || "url not set";
 
 /**
