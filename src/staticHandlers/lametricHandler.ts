@@ -40,6 +40,7 @@ export class LametricHandler {
 
         let response = await netatmoHTTPClient.get('api/getstationsdata', config);
 
+        if (response.status == 200) {
         const stationsdata: Stationsdata = response.data.body.devices[0];
         const temp = stationsdata.dashboard_data.Temperature.toFixed(1)
 
@@ -48,6 +49,9 @@ export class LametricHandler {
         laMetricFrame.model.frames.push({ "icon": "i3359", "text": stationsdata.dashboard_data.Humidity + "%" });
 
         sendToLametric();
+        } else {
+            console.log("Error getting data from netatmo. HTTP Status: " + response.status + " " + response.statusText);
+        }
     }
 
     //send SMA station data to lametric

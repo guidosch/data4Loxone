@@ -68,10 +68,10 @@ export class ParticleHandler {
         };
 
         result.sunshine = data.sunshine;
-        result.gustPeak = data.sunshine;
-        result.outsidetemperature = data.sunshine;
-        result.outsidehumidity = data.sunshine;
-        result.precipitation = data.sunshine;
+        result.gustPeak = data.gustPeak;
+        result.outsidetemperature = data.temperature;
+        result.outsidehumidity = data.humidity;
+        result.precipitation = data.precipitation;
 
         return JSON.stringify(result);
     }
