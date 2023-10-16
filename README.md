@@ -32,7 +32,7 @@ https://nodejs.org/en/docs/guides/nodejs-docker-webapp
 
 ### Run the docker image
 Run in background (-d param). App inside container runs on port 3000
-`docker run -p 8081:3000 -d --env-file ./env -it --rm -v tokenStorage:/usr/app/tokenStorage guidosch/node-app-data4loxone`
+`docker run -name=data4loxone -p 8081:8000 -d --env-file ./env -it --rm -v tokenStorage:/usr/app/tokenStorage guidosch/node-app-data4loxone`
 
 Run and inspect container (Bash is not installed on alpine linux by default)
-`docker run -p 8081:3000 --env-file .env -it --rm -v tokenStorage:/usr/app/tokenStorage guidosch/node-app-data4loxone /bin/sh --login`
+`docker run -name=data4loxone  -p 8081:8000 --env-file .env -it --rm -v tokenStorage:/usr/app/tokenStorage guidosch/node-app-data4loxone /bin/sh --login`

@@ -14,11 +14,11 @@ const axiosInstance = axios.create({
     },
     auth: {
         username: 'dev',
-        password:'a06055aec93a298ea3672c7d81ba7d2b4fa14933654a245831d335233c43e00f'
+        password: 'a06055aec93a298ea3672c7d81ba7d2b4fa14933654a245831d335233c43e00f'
     }
 });
 
-const SMA_URL:string= process.env["SMA_OPENDATA_URL"] || "url not set";
+const SMA_URL: string = process.env["SMA_OPENDATA_URL"] || "url not set";
 const netatmoHTTPClient = new NetatmoAxiosInterceptor();
 const config = {
     params: MainStation
@@ -41,14 +41,14 @@ export class LametricHandler {
         let response = await netatmoHTTPClient.get('api/getstationsdata', config);
 
         if (response.status == 200) {
-        const stationsdata: Stationsdata = response.data.body.devices[0];
-        const temp = stationsdata.dashboard_data.Temperature.toFixed(1)
+            const stationsdata: Stationsdata = response.data.body.devices[0];
+            const temp = stationsdata.dashboard_data.Temperature.toFixed(1)
 
-        laMetricFrame.model.frames.push({ "icon": "i2355", "text": temp + "°C In" });
-        laMetricFrame.model.frames.push({ "icon": "i12785", "text": stationsdata.dashboard_data.CO2 });
-        laMetricFrame.model.frames.push({ "icon": "i3359", "text": stationsdata.dashboard_data.Humidity + "%" });
+            laMetricFrame.model.frames.push({ "icon": "i2355", "text": temp + "°C In" });
+            laMetricFrame.model.frames.push({ "icon": "i12785", "text": stationsdata.dashboard_data.CO2 });
+            laMetricFrame.model.frames.push({ "icon": "i3359", "text": stationsdata.dashboard_data.Humidity + "%" });
 
-        sendToLametric();
+            sendToLametric();
         } else {
             console.log("Error getting data from netatmo. HTTP Status: " + response.status + " " + response.statusText);
         }
@@ -81,13 +81,15 @@ export class LametricHandler {
             }
         }).catch(function (error) {
             if (error.response) {
+                console.log(error.response.data);
                 console.log(error.response.status);
+                console.log(error.response.headers);
             } else if (error.request) {
                 console.log(error.request);
             } else {
                 console.log('Error', error.message);
             }
-            console.log(error.config);
+            console.log(error.toJSON());
         });
 
     }

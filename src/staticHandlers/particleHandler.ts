@@ -34,7 +34,7 @@ export class ParticleHandler {
                 let data: MeteoOpenData = response.data;
                 let event = particleEventMeteoData();
                 event.data = ParticleHandler.mapDataToResult(data);
-                
+
                 particleHttpClient.post('/v1/devices/events', event)
                     .then(function (response: AxiosResponse): void {
                         console.log(`response from particle.: ${JSON.stringify(response.data)}`);
@@ -47,17 +47,19 @@ export class ParticleHandler {
         }).catch(function (error) {
             if (error.response) {
                 console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
             } else if (error.request) {
                 console.log(error.request);
             } else {
                 console.log('Error', error.message);
             }
-            console.log(error.config);
+            console.log(error.toJSON());
         });
 
     }
 
-    private static mapDataToResult(data: MeteoOpenData):string{
+    private static mapDataToResult(data: MeteoOpenData): string {
         let result = {
             sunshine: "",
             gustPeak: "",
@@ -93,7 +95,7 @@ export class ParticleHandler {
                 let hasSolarPower = ParticleHandler.hasUnusedSolasPower(response.data);
                 let event = particleEventSolarPower();
                 event.data = hasSolarPower.toString();
-                
+
                 particleHttpClient.post('/v1/devices/events', event)
                     .then(function (response: AxiosResponse): void {
                         console.log(`response from particle.: ${JSON.stringify(response.data)}`);
