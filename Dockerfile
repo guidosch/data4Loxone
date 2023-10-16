@@ -12,6 +12,6 @@ COPY . ./
 RUN npm run build
 
 ENV NODE_ENV=production
-EXPOSE 3000/tcp
+EXPOSE 8000/tcp
 
 CMD ["node", "dist/src/index.js"]
