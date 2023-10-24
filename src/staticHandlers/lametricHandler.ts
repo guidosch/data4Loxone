@@ -103,7 +103,11 @@ function sendToLametric() {
             console.log(`Lametric accepted data`);
         }
     }).catch(function (error) {
-        console.log("Error sending to LaMetric: " + JSON.stringify(error));
+        if (error.status == 400) {
+            console.log("Lametric returned 400 Bad Request. This meas it is sleeping.");
+        } else {
+            console.log("Error sending to LaMetric: " + JSON.stringify(error));
+        }
     }).finally(function () {
         laMetricFrame.model.frames = [];
     });

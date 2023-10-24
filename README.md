@@ -26,6 +26,10 @@ All config options are in the .env file. It will be loaded during runtime (by do
 ## Build the Docker image (arm64 for raspberry PI 4)
 `docker build . -t guidosch/node-app-data4loxone`
 
+Delete the old container before starting/creating the new one
+docker ps -a to show all containers
+docker rm [containerID]
+
 ### Run the docker image
 Run in background (-d param). App inside container runs on port 8000
 `sudo docker run --name=data4loxone -p 8081:8000 -d --env-file .env --rm -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone`

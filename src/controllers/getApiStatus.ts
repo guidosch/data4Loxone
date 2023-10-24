@@ -9,6 +9,7 @@ const SMA_URL = process.env["SMA_OPENDATA_URL"] || "url not set";
 
 /**
  * Health check endpoint which checks whether meteo data is not too old.
+ * 
  */
 const getRoot: RequestHandler = (req, res) => {
 
@@ -16,10 +17,12 @@ const getRoot: RequestHandler = (req, res) => {
         if (response.status == 200) {
             let data: MeteoOpenData = response.data;
             let result = <MeteoOpenDataAPIStatus>{};
-            result.apiDataUptoDateAsBoolean = true;
+            result.apiDataUptoDateAsBoolean = false;
+            result.apiDataUptoDate = 0;
             let diff = moment().diff(moment(data.dateTime));
                     if (diff < MAX_DATA_AGE) {
                         result.apiDataUptoDateAsBoolean = true;
+                        result.apiAvailableStatus = 1;
                         result.apiDataUptoDate = 1;
                     }
                     result.apiDataAgeInMinutes = Math.round(diff / 1000 / 60);
