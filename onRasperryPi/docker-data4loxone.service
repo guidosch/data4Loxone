@@ -1,0 +1,15 @@
+[Unit]
+Description=Data 4 loxone
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker stop data4loxone
+ExecStart=/usr/bin/docker start -a data4loxone
+# container created with:
+# sudo docker create --name=data4loxone -p 8081:8000 --env-file .env -it  -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone
+
+[Install]
+WantedBy=multi-user.target

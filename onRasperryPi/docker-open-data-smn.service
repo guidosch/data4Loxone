@@ -1,0 +1,15 @@
+[Unit]
+Description=SMA Container
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker stop open-data-smn
+ExecStart=/usr/bin/docker start -a open-data-smn
+# container created with:
+# sudo docker create --name open-data-smn -p 8080:8080 marcelstoer/open-data-smn
+
+[Install]
+WantedBy=multi-user.target
