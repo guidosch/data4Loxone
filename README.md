@@ -23,7 +23,10 @@ A `GET` request to `/` will respond with a description of the application.
 ## Config over .env
 All config options are in the .env file. It will be loaded during runtime (by dotenv) package together with the `config.ts` file. The .env file will not be copied to the image for security reasons and you have to pass the variables over the docker run/create command. Also copy the files in the tokenStorage dir to the env where you run the container.
 
-## Build the Docker image (arm64 for raspberry PI 4)
+## Build the Docker image
+
+Do it on the raspberry 4 to create a ARM 64 compatible image
+
 `docker build . -t guidosch/node-app-data4loxone`
 
 Delete the old container before starting/creating the new one
@@ -33,6 +36,11 @@ docker rmi [imageID] to delete image
 
 ### Run the docker image
 
+Copy the files from the tokenStorage before building the container!!
+* authConf.json
+* tokens.json
+* tokensParticle.json 
+
 Mainly controlled over systemD script
 `sudo systemctl [status/start/stop] docker-data4loxon`
 
@@ -40,7 +48,7 @@ Run in background (-d param). App inside container runs on port 8000
 `sudo docker run --name=data4loxone -p 8081:8000 -d --env-file .env --rm -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone`
 
 Create container
-`sudo docker crate --name=data4loxone -p 8081:8000 --env-file .env -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone`
+`sudo docker craate --name=data4loxone -p 8081:8000 --env-file .env -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone`
 
 Run and inspect container (Bash is not installed on alpine linux by default)
 `sudo docker run --name=data4loxone -p 8081:8000 --env-file .env -it --rm -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone /bin/sh --login`
