@@ -29,17 +29,23 @@ Do it on the raspberry 4 to create a ARM 64 compatible image
 
 `docker build . -t guidosch/node-app-data4loxone`
 
-Delete the old container before starting/creating the new one
-docker ps -a to show all containers
-docker rm [containerID]
-docker rmi [imageID] to delete image
+Create the new container (create command below...)
+
+Stop running service and delete the old container before starting/creating the new one
+sudo systemctl stop docker-data4loxone.service
+sudo docker stop [containerID]
+sudo docker ps -a to show all containers
+sudo docker rm [containerID]
+sudo docker rmi [imageID] to delete image
+sudo systemctl start docker-data4loxone.service 
 
 ### Run the docker image
 
-Copy the files from the tokenStorage before building the container!!
+Copy the files from the tokenStorage of the running container before building the container!! Otherwise the data in the folder might be to old and has expired refresh tokens.
 * authConf.json
 * tokens.json
-* tokensParticle.json 
+* tokensParticle.json
+
 
 Mainly controlled over systemD script
 `sudo systemctl [status/start/stop] docker-data4loxon`

@@ -25,9 +25,9 @@ const getRoot: RequestHandler = (req, res) => {
         htmlout += `<li><a href="${route}">${route}</a></li>`;
     });
 
-    res.status(200).send(
+    res.status(200).contentType('text/html').send(
         `<html><body><h3>${config.name}</h3><p>${config.description}</p><ul>${htmlout}</ul></body></html>`
-    ).contentType('text/html');
+    );
 
 }
 

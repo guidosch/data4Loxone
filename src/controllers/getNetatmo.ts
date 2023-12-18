@@ -2,16 +2,12 @@ import { RequestHandler } from 'express'
 import AxiosInterceptor from '../logic/netatmoRequestResponseInterceptor'
 import { MainStation } from '../logic/devices';
 import { ModuleDashboardData, Stationsdata } from '../types/stationsData';
-import { NetatmoStationsData } from '../types/netatmoStationsData4Loxone';
+import { NetatmoStationsData, fallbackNetatmoData } from '../types/netatmoStationsData4Loxone';
 
 const axiosInterceptor = new AxiosInterceptor();
 const config = {
     params: MainStation
 }
-
-let cachedNetatmoStationsData: NetatmoStationsData;
-
-
 const getRoot: RequestHandler = async (req, res) => {
     try {
         let response = await axiosInterceptor.get('api/getstationsdata', config);
@@ -33,14 +29,11 @@ const getRoot: RequestHandler = async (req, res) => {
                 lastUpdateSecondsAgo: Math.round(Date.now() / 1000) - (stationsdata.dashboard_data.time_utc),
                 error: "no error"
             }
-            cachedNetatmoStationsData = netatmoStationsData;
             res.status(200).json(netatmoStationsData);
         }
     } catch (error) {
+        res.status(503).json(fallbackNetatmoData);
         console.error("Netatmo API error: " + JSON.stringify(error));
-        //todo do try to return the last known data instead of empty data
-        cachedNetatmoStationsData.error = "Returning cached netatmo data because of error. Error";;
-        res.status(503).json(cachedNetatmoStationsData);
     }
 
 }
