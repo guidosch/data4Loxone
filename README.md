@@ -31,13 +31,16 @@ Do it on the raspberry 4 to create a ARM 64 compatible image
 
 Create the new container (create command below...)
 
-Stop running service and delete the old container before starting/creating the new one
+```bash
+#Stop running service and delete the old container before starting/creating the new one
 sudo systemctl stop docker-data4loxone.service
 sudo docker stop [containerID]
 sudo docker ps -a to show all containers
 sudo docker rm [containerID]
+sudo docker images
 sudo docker rmi [imageID] to delete image
-sudo systemctl start docker-data4loxone.service 
+sudo systemctl start docker-data4loxone.service
+``````
 
 ### Run the docker image
 

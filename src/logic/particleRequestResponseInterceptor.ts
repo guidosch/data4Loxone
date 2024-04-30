@@ -45,8 +45,9 @@ export default class AxiosInterceptor {
                         {"token_type":"bearer","access_token":"1234","expires_in":7776000,"refresh_token":"asdf"}%
             */
             async function error(error) {
-                if (error.response && error.response.status === 403) {
-                    console.log('Received 403 Forbidden response');
+                let httpStatus = error.response.status;
+                if (error.response && (httpStatus === 403 || httpStatus === 401) ) {
+                    console.log('Received 40x response:'+error.response.status);
                     let tokens = readTokens();
                     try {
                         axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';

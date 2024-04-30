@@ -2,7 +2,7 @@ import { RequestHandler } from 'express'
 import AxiosInterceptor from '../logic/netatmoRequestResponseInterceptor'
 import { MainStation } from '../logic/devices';
 import { Stationsdata, Module } from '../types/stationsData';
-import { NetatmoStationsHealthData } from '../types/netatmoHealthData4Loxone';
+import { NetatmoStationsHealthData, emtpyNetatmoStationsHealthData } from '../types/netatmoHealthData4Loxone';
 
 const axiosInterceptor = new AxiosInterceptor();
 const config = {
@@ -13,28 +13,36 @@ let error: string = "";
 
 
 const getRoot: RequestHandler = async (req, res) => {
-    let response = await axiosInterceptor.get('api/getstationsdata', config);
-    
-    if (response.status !== 200) {
-        error = response.status + " " + response.statusText
-        res.status(response.status).json({ error: error });
-    } else {
-        const stationsdata: Stationsdata = response.data.body.devices[0];
 
-        let roomModule = getModuleData(stationsdata, "Zimmer");
-        let outdoorModule = getModuleData(stationsdata, "Outdoor");
+    try {
 
-        let netatmoStationsHealthData: NetatmoStationsHealthData = {
-            mainModuleName: stationsdata.module_name,
-            mainOnline: stationsdata.reachable ? 1 : 0,
-            module1: roomModule?.module_name || '',
-            module1Online: roomModule?.reachable ? 1 : 0,
-            module2: 'zimmer2',
-            module2Online: 0,
-            moduleOutdoorName: outdoorModule?.module_name || '',
-            moduleOutdoorOnline: outdoorModule?.reachable ? 1 : 0
+        let response = await axiosInterceptor.get('api/getstationsdata', config);
+
+        if (response.status !== 200) {
+            error = response.status + " " + response.statusText
+            res.status(response.status).json({ error: error });
+        } else {
+            const stationsdata: Stationsdata = response.data.body.devices[0];
+
+            let roomModule = getModuleData(stationsdata, "Zimmer");
+            let outdoorModule = getModuleData(stationsdata, "Outdoor");
+
+            let netatmoStationsHealthData: NetatmoStationsHealthData = {
+                mainModuleName: stationsdata.module_name,
+                mainOnline: stationsdata.reachable ? 1 : 0,
+                module1: roomModule?.module_name || '',
+                module1Online: roomModule?.reachable ? 1 : 0,
+                module2: 'zimmer2',
+                module2Online: 0,
+                moduleOutdoorName: outdoorModule?.module_name || '',
+                moduleOutdoorOnline: outdoorModule?.reachable ? 1 : 0
+            }
+            res.status(200).json(netatmoStationsHealthData);
         }
-        res.status(200).json(netatmoStationsHealthData);
+    }
+    catch (error) {
+        res.status(503).json(emtpyNetatmoStationsHealthData);
+        console.error("Netatmo API error: " + JSON.stringify(error));
     }
 
 }
