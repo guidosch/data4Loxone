@@ -25,7 +25,7 @@ export const emtpyNetatmoStationsData: NetatmoStationsData = {
 };
 
 export const fallbackNetatmoData: NetatmoStationsData = {
-    temperatureMain: 0,
+    temperatureMain: 23.1,
     co2Main: 0,
     humidityMain: 0,
     temperatureRoom: 23.1,
