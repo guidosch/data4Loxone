@@ -21,7 +21,14 @@ You should copy `.env.sample` to `.env` and then:
 A `GET` request to `/` will respond with a description of the application.
 
 ## Config over .env
-All config options are in the .env file. It will be loaded during runtime (by dotenv) package together with the `config.ts` file. The .env file will not be copied to the image for security reasons and you have to pass the variables over the docker `run/create` command. Also copy the files in the `tokenStorage` dir to the env where you run the container.
+All config options are in the .env file. It will be loaded during runtime (by dotenv) package together with the `config.ts` file. The .env file will not be copied to the image for security reasons and you have to pass the variables over the docker `run/create` command.
+
+The tokens are stored in a docker volume called tokenStorage (`sudo docker volume inspect tokenStorage`). The inspect command allows you to see the mountpoint of the volume. The tokenStorage folder in my app is not copied to the container by the docker create/run command because of the syntax beeing:
+
+`docker run --volume <volume-name>:<mount-path>`
+
+So the volume name points to the location revealed by docker inspect! So if you have to populate new tokens when they somenow expired you have to stop the container and copy the new tokens to the effective mount point location!
+See: https://docs.docker.com/engine/storage/volumes/
 
 ## Build and Deployment after code change
 
@@ -43,19 +50,22 @@ sudo docker ps -a to show all containers
 sudo docker rm [containerID]
 sudo docker images
 sudo docker rmi [imageID] to delete image
+docker build . -t guidosch/node-app-data4loxone to create the new image (do run on raspi because of ARM)
 sudo docker create --name=data4loxone -p 8081:8000 --env-file .env -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone
 sudo systemctl start docker-data4loxone.service
 ``````
-
+### Create Image 
 Do it on the raspberry 4 to create a ARM 64 compatible image (-t is for the image name)
 
 `docker build . -t guidosch/node-app-data4loxone`
 
-Create the new container (create command below...) but copy the new refresh tokens before creating the container!
+Create the new container (create command below...) the tokens are stored outside and in a volume and are mounted on start of the container
 
 ### Run/create the docker image
 
-Copy the files from the tokenStorage of the running container before building the container!! Otherwise the data in the folder might be to old and has expired refresh tokens. The token files inside the container are at: /usr/app/dist/tokenStorage
+(sudo docker volume inspect tokenStorage)
+
+You also can copy files from the continer to host: docker cp container_id:./bar/foo.txt . eg. to test locally with the current tokens
 
 * authConf.json
 * tokens.json
@@ -74,5 +84,5 @@ Create the container (docker run does create and run in one command. Use create 
 Testing: Run and inspect container (Bash is not installed on alpine linux by default)
 `sudo docker run --name=data4loxone -p 8081:8000 --env-file .env -it --rm -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone /bin/sh --login`
 
-### Monitoring
+### Monitoring / Logging dir
 `sudo docker inspect [containerID] | grep LogPath` to find the log path where all the console log is kept.
