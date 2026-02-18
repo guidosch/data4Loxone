@@ -14,7 +14,7 @@ const root = express.Router()
 
 root.get('/', getRoot)
 
-// call to netato api to get temperature, humidity and co2
+// call to netatmo api to get temperature, humidity and co2
 root.get('/netatmo', getNetatmo)
 
 // call to my local OpenData smn/SMA to check if api is up and data is not too old

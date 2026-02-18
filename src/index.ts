@@ -31,7 +31,6 @@ schedule.scheduleJob("*/20 * * * *", function () {
 });
 
 // send solaredge PV power to particle cloud for device in KellerV2.1 T77
-
 schedule.scheduleJob("*/30 * * * *", function () {
     ParticleHandler.solarPowerDataForParticle();
 });

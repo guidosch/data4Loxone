@@ -16,7 +16,8 @@ enum MeasturmentType {
 
 export var MainStation: NetatmoDevice = {
     //main station
-    device_id: "70:ee:50:01:97:20",
+    //device_id: "70:ee:50:01:97:20", old one
+    device_id: "70:ee:50:bd:0d:0a",
     scale: "max",
     type: [MeasturmentType.Temperature, MeasturmentType.CO2, MeasturmentType.Humidity],
     date_end: "last",
@@ -25,8 +26,8 @@ export var MainStation: NetatmoDevice = {
 
 export var optionsModuleRoom: NetatmoDevice = {
     //room module
-    device_id: "70:ee:50:01:97:20",
-    module_id: "03:00:00:06:37:cc",
+    device_id: "70:ee:50:bd:0d:0a",
+    module_id: "03:00:00:10:90:18",
     scale: "max",
     type: [MeasturmentType.Temperature, MeasturmentType.CO2, MeasturmentType.Humidity],
     date_end: "last",
@@ -35,8 +36,8 @@ export var optionsModuleRoom: NetatmoDevice = {
 
 export var optionsModuleOutside: NetatmoDevice = {
     //outside module
-    device_id: "70:ee:50:01:97:20",
-    module_id: "02:00:00:01:94:24",
+    device_id: "70:ee:50:bd:0d:0a",
+    module_id: "02:00:00:bc:e9:da",
     scale: "max",
     type: [MeasturmentType.Temperature,  MeasturmentType.Humidity],
     date_end: "last",
