@@ -33,42 +33,8 @@ export default class AxiosInterceptor {
         // Add response interceptor
         this.axiosInstance.interceptors.response.use(
             this.responseInterceptor,
-            
-            /** see particle API docu
-                 * curl https://api.particle.io/oauth/token \
-                        -u particle:particle \
-                        -d grant_type=password \
-                        -d "username=guido.schnider@gmail.com" \
-                        -d "password=pk(dxE8iG3k6Vnx[GzrpiK"
-
-                        response:
-                        {"token_type":"bearer","access_token":"1234","expires_in":7776000,"refresh_token":"asdf"}%
-            */
-            async function error(error) {
-                let httpStatus = error.response.status;
-                if (error.response && (httpStatus === 403 || httpStatus === 401) ) {
-                    console.log('Received 40x response:'+error.response.status);
-                    let tokens = readTokens();
-                    try {
-                        axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-                        axios.defaults.headers.post['Authorization'] = 'particle:particle';
-                        const { data } = await axios.create().post('https://api.particle.io/oauth/token', {
-                            //refresh token call no supported by this client_id
-                            grant_type: 'password',
-                            username: particle_username,
-                            password: particle_password
-                        });
-                        //write tokens
-                        writeTokens(data);
-                        return data.access_token;
-
-                    } catch (err: any) {
-                        console.error("Error authenticate status: " + JSON.stringify(err));
-                    }
-                }
-                console.error("Error: " + JSON.stringify(error));
-                return Promise.reject(error);
-            })
+            this.errorInterceptor.bind(this)
+        );
     }
 
     requestErrorInterceptor(error: any): Promise<never> {
@@ -77,6 +43,35 @@ export default class AxiosInterceptor {
 
     responseInterceptor(response: AxiosResponse): AxiosResponse {
         return response;
+    }
+
+    async errorInterceptor(error: any): Promise<any> {
+        let httpStatus = error.response?.status;
+        if (error.response && (httpStatus === 403 || httpStatus === 401)) {
+            console.log('Received 40x response:' + error.response.status);
+            let tokens = readTokens();
+            try {
+                const authHeader = 'Basic ' + Buffer.from('particle:particle').toString('base64');
+                const params = new URLSearchParams();
+                params.append('grant_type', 'password');
+                params.append('username', particle_username!);
+                params.append('password', particle_password!);
+                const { data } = await axios.post('https://api.particle.io/oauth/token', params.toString(), {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': authHeader
+                    }
+                });
+                // write tokens
+                writeTokens(data);
+                // Retry the original request with new token
+                return this.axiosInstance.request(error.config);
+            } catch (err: any) {
+                console.error("Error authenticate status: " + JSON.stringify(err));
+            }
+        }
+        console.error("Error: " + JSON.stringify(error));
+        return Promise.reject(error);
     }
 
     /**
