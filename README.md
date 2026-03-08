@@ -46,15 +46,21 @@ See: https://docs.docker.com/engine/storage/volumes/
 # Stop running service and delete the old container before starting/creating the new one
 sudo systemctl stop docker-data4loxone.service
 sudo docker stop [containerID]
-sudo docker ps -a to show all containers
+# ps -a to show all containers
+sudo docker ps -a 
 sudo docker rm [containerID]
 sudo docker images
-sudo docker rmi [imageID] to delete image
-docker build . -t guidosch/node-app-data4loxone to create the new image (do run on raspi because of ARM)
+# rmi [imageID] to delete image
+sudo docker rmi [imageID]
+# to create the new image run... (do run on raspi because of ARM)
+sudo docker build . -t guidosch/node-app-data4loxone
+# create container
 sudo docker create --name=data4loxone -p 8081:8000 --env-file .env -v tokenStorage:/usr/app/dist/tokenStorage guidosch/node-app-data4loxone
 sudo systemctl start docker-data4loxone.service
 ``````
+
 ### Create Image 
+
 Do it on the raspberry 4 to create a ARM 64 compatible image (-t is for the image name)
 
 `docker build . -t guidosch/node-app-data4loxone`
