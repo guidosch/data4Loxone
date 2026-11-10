@@ -1,24 +1,16 @@
 import axios, { AxiosResponse } from "axios";
 import ParticleAxiosIntercepter from '../logic/particleRequestResponseInterceptor';
 import { particleEventSolarPower, particleEventMeteoData } from "../types/particleEvent";
-import { Solaredge } from "../types/solarEdge";
+import { SolaredgeMetersTelemetry } from "../types/solarEdge";
+import SolaredgeClient from "../logic/solaredgeClient";
 import { MeteoOpenData } from "../types/meteoOpenData";
 
-// solaredge config
-const API_KEY = process.env["API_KEY_SOLAREDGE"] //see 1password for user
+// solaredge config (API v2, OAuth tokens in tokenStorage/tokensSolaredge.json)
 const SITE = 2801781;
 
 const SMA_URL = process.env["SMA_OPENDATA_URL"] || "url not set";
 
-const axiosInstance = axios.create({
-    baseURL: 'https://monitoringapi.solaredge.com',
-    timeout: 5000,
-    headers: {
-        "Cache-Control": "max-age=0",
-        "Accept": "application/json",
-    },
-
-});
+const solaredgeClient = new SolaredgeClient();
 
 const particleHttpClient = new ParticleAxiosIntercepter();
 
@@ -89,10 +81,17 @@ export class ParticleHandler {
         */
     static async solarPowerDataForParticle() {
 
-        //get data from solaredge
-        axiosInstance.get(`/site/${SITE}/currentPowerFlow?api_key=${API_KEY}`).then(function (response) {
+        //get data from solaredge (API v2, basic tier: meters telemetry, 15min buckets of the last hour)
+        //The v1 endpoint currentPowerFlow is now /v2/sites/{id}/power-flow but needs an "Advanced Monitoring" plan.
+        const now = new Date();
+        const params = {
+            resolution: 'QUARTER_HOUR',
+            from: ParticleHandler.isoInstant(new Date(now.getTime() - 60 * 60 * 1000)),
+            to: ParticleHandler.isoInstant(now)
+        };
+        solaredgeClient.get<SolaredgeMetersTelemetry>(`/sites/${SITE}/meters/telemetry`, params).then(function (response) {
             if (response.status == 200) {
-                let hasSolarPower = ParticleHandler.hasUnusedSolasPower(response.data);
+                let hasSolarPower = ParticleHandler.hasUnusedSolarPower(response.data);
                 let event = particleEventSolarPower();
                 event.data = hasSolarPower.toString();
 
@@ -105,56 +104,48 @@ export class ParticleHandler {
                     });
             }
         }).catch(function (error) {
-            console.log("Error requesting data from solaredge: " + JSON.stringify(error));
+            console.log("Error requesting data from solaredge: " + JSON.stringify(error.response?.data ?? error.message));
         });
     }
 
-
-
-    /** example data
-     * {
-        "siteCurrentPowerFlow": {
-            "updateRefreshRate": 3,
-            "unit": "kW",
-            "connections": [
-                {
-                    "from": "GRID",
-                    "to": "Load"
-                }
-            ],
-            "GRID": {
-                "status": "Active",
-                "currentPower": 16.19
-            },
-            "LOAD": {
-                "status": "Active",
-                "currentPower": 16.19
-            },
-            "PV": {
-                "status": "Idle",
-                "currentPower": 0
-            }
-        }
-    }
+    /**
+     * API v2 expects an ISO instant with zone, e.g. 2026-11-06T21:17:39Z
+     * (a local date-time without offset is rejected with 400 "Failed to convert ... to required type [Instant]")
      */
-    private static hasUnusedSolasPower(solaredgeData: Solaredge): boolean {
-        console.log(JSON.stringify(solaredgeData));
-        let connections = solaredgeData.siteCurrentPowerFlow.connections;
-        let powerCount = 0;
-        if (solaredgeData.siteCurrentPowerFlow.PV.status.match(/active/i)) {
-            connections.forEach(connection => {
-                if (connection.from.match(/pv/i) && connection.to.match(/load/i)) {
-                    powerCount++;
-                }
-                if (connection.from.match(/load/i) && connection.to.match(/grid/i)) {
-                    powerCount++;
+    private static isoInstant(date: Date): string {
+        return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    }
+
+    /**
+     * Unused solar power = power is currently exported to the grid
+     * (v1 logic was: PV active and flows PV->LOAD and LOAD->GRID).
+     * Uses the latest non-empty 15min bucket of the meter's export power.
+     *
+     * example data
+     * {"resolution": "QUARTER_HOUR",
+     *  "meters": {"<serial>": {
+     *      "exportPower": {"unit": "W", "values": [{"timestamp": "2026-09-29T12:15:00+01:00", "value": 1500}]},
+     *      "productionPower": {"unit": "W", "values": [...]}
+     *  }}}
+     */
+    private static hasUnusedSolarPower(data: SolaredgeMetersTelemetry): boolean {
+        console.log(JSON.stringify(data));
+        let exportPower: number | undefined;
+        Object.values(data.meters ?? {}).forEach(metrics => {
+            Object.entries(metrics).forEach(([metric, series]) => {
+                if (metric.match(/^export.*power$/i)) {
+                    const latest = series.values?.filter(v => v.value !== null && v.value !== undefined).pop();
+                    if (latest) {
+                        exportPower = (exportPower ?? 0) + Number(latest.value);
+                    }
                 }
             });
+        });
+        if (exportPower === undefined) {
+            console.log("No export power found in solaredge meters telemetry.");
+            return false;
         }
-        if (powerCount == 2) {
-            return true;
-        }
-        return false;
+        return exportPower > 0;
     }
 
 }
