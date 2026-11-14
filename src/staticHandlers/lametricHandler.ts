@@ -38,19 +38,23 @@ export class LametricHandler {
 
     static async sendNetatmoToLaMetric() {
 
-        let response = await netatmoHTTPClient.get('api/getstationsdata', config);
+        try {
+            let response = await netatmoHTTPClient.get('api/getstationsdata', config);
 
-        if (response.status == 200) {
-            const stationsdata: Stationsdata = response.data.body.devices[0];
-            const temp = stationsdata.dashboard_data.Temperature.toFixed(1)
+            if (response.status == 200) {
+                const stationsdata: Stationsdata = response.data.body.devices[0];
+                const temp = stationsdata.dashboard_data.Temperature.toFixed(1)
 
-            laMetricFrame.model.frames.push({ "icon": "i2355", "text": temp + "°C In" });
-            laMetricFrame.model.frames.push({ "icon": "i12785", "text": stationsdata.dashboard_data.CO2 });
-            laMetricFrame.model.frames.push({ "icon": "i3359", "text": stationsdata.dashboard_data.Humidity + "%" });
+                laMetricFrame.model.frames.push({ "icon": "i2355", "text": temp + "°C In" });
+                laMetricFrame.model.frames.push({ "icon": "i12785", "text": stationsdata.dashboard_data.CO2 });
+                laMetricFrame.model.frames.push({ "icon": "i3359", "text": stationsdata.dashboard_data.Humidity + "%" });
 
-            sendToLametric();
-        } else {
-            console.log("Error getting data from netatmo. HTTP Status: " + response.status + " " + response.statusText);
+                sendToLametric();
+            } else {
+                console.log("Error getting data from netatmo. HTTP Status: " + response.status + " " + response.statusText);
+            }
+        } catch (error) {
+            console.error("Netatmo API error: " + JSON.stringify(error));
         }
     }
 

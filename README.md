@@ -27,6 +27,7 @@ The tokens are stored in a docker volume called tokenStorage (`sudo docker volum
 
 `docker run --volume <volume-name>:<mount-path>`
 
+
 So the volume name points to the location revealed by docker inspect! So if you have to populate new tokens when they somenow expired you have to stop the container and copy the new tokens to the effective mount point location!
 See: https://docs.docker.com/engine/storage/volumes/
 
