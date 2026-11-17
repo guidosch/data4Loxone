@@ -30,6 +30,9 @@ const getRoot: RequestHandler = async (req, res) => {
                 error: "no error"
             }
             res.status(200).json(netatmoStationsData);
+        } else {
+            console.warn("Netatmo API unexpected status: " + response.status);
+            res.status(503).json(fallbackNetatmoData);
         }
     } catch (error) {
         res.status(503).json(fallbackNetatmoData);

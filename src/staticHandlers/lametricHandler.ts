@@ -107,8 +107,9 @@ function sendToLametric() {
             console.log(`Lametric accepted data`);
         }
     }).catch(function (error) {
-        if (error.status == 400) {
-            console.log("Lametric returned 400 Bad Request. This meas it is sleeping.");
+        if (error.response?.status === 400) {
+            // LaMetric rejects notifications while in night/sleep mode; not worth a full error dump
+            console.log("Lametric returned 400 Bad Request. This means it is sleeping.");
         } else {
             console.log("Error sending to LaMetric: " + JSON.stringify(error));
         }

@@ -37,9 +37,12 @@ export default class AxiosInterceptor {
              * https://stackoverflow.com/questions/51563821/axios-interceptors-retry-original-request-and-access-original-promise
              * 
             */
-            async function error(error) {
-                if (error.response && error.response.status === 403) {
-                    console.log('Received 403 Forbidden response');
+            async (error) => {
+                const status = error.response?.status;
+                const originalRequest = error.config;
+                if ((status === 401 || status === 403) && originalRequest && !originalRequest._retry) {
+                    console.log(`Received ${status} response, refreshing Netatmo token`);
+                    originalRequest._retry = true;
                     let auth = readAuthConf();
                     let tokens = readTokens();
                     if (tokens && tokens.refresh_token) {
@@ -55,7 +58,8 @@ export default class AxiosInterceptor {
                         });
                         //write tokens and update refresh token in authConf
                         writeTokens(data, auth);
-                        return data.access_token;
+                        // retry the original request; the request interceptor sets the new Bearer token
+                        return this.axiosInstance(originalRequest);
 
                     } catch (err: any) {
                         console.error("Error authenticate status: " + JSON.stringify(err));
