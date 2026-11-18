@@ -4,6 +4,7 @@ import { particleEventSolarPower, particleEventMeteoData } from "../types/partic
 import { SolaredgeMetersTelemetry } from "../types/solarEdge";
 import SolaredgeClient from "../logic/solaredgeClient";
 import { MeteoOpenData } from "../types/meteoOpenData";
+import { describeError } from "../logic/errorUtils";
 
 // solaredge config (API v2, OAuth tokens in tokenStorage/tokensSolaredge.json)
 const SITE = 2801781;
@@ -21,7 +22,7 @@ export class ParticleHandler {
      * Fetch SMA data from local service and push to particle cloud
      */
     static async meteoDataForParticle() {
-        axios.get<MeteoOpenData>(SMA_URL).then(function (response) {
+        axios.get<MeteoOpenData>(SMA_URL, { timeout: 10000 }).then(function (response) {
             if (response.status == 200) {
                 let data: MeteoOpenData = response.data;
                 let event = particleEventMeteoData();
@@ -32,21 +33,12 @@ export class ParticleHandler {
                         console.log(`response from particle.: ${JSON.stringify(response.data)}`);
                     })
                     .catch(function (error: any) {
-                        console.log("Error sending data to particle: " + JSON.stringify(error));
+                        console.error("Error sending data to particle: " + describeError(error));
                     });
 
             }
         }).catch(function (error) {
-            if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-            } else if (error.request) {
-                console.log(error.request);
-            } else {
-                console.log('Error', error.message);
-            }
-            console.log(error.toJSON());
+            console.error("Error getting data from local SMA service: " + describeError(error));
         });
 
     }
@@ -100,11 +92,11 @@ export class ParticleHandler {
                         console.log(`response from particle.: ${JSON.stringify(response.data)}`);
                     })
                     .catch(function (error: any) {
-                        console.log("Error sending data to particle: " + JSON.stringify(error));
+                        console.error("Error sending data to particle: " + describeError(error));
                     });
             }
         }).catch(function (error) {
-            console.log("Error requesting data from solaredge: " + JSON.stringify(error.response?.data ?? error.message));
+            console.error("Error requesting data from solaredge: " + describeError(error));
         });
     }
 
@@ -129,7 +121,6 @@ export class ParticleHandler {
      *  }}}
      */
     private static hasUnusedSolarPower(data: SolaredgeMetersTelemetry): boolean {
-        console.log(JSON.stringify(data));
         let exportPower: number | undefined;
         Object.values(data.meters ?? {}).forEach(metrics => {
             Object.entries(metrics).forEach(([metric, series]) => {

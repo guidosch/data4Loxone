@@ -2,7 +2,7 @@
 
 ### Netatmo 
 * authConf.json --> Netatmo (weather station) OAuth2 client config: client_id, client_secret, grant_type and the current refresh_token. Used together with tokens.json by src/logic/netatmoRequestResponseInterceptor.ts to refresh access to api.netatmo.com. No manual steps known to be needed to recreate it; keep it, since it holds the app's Netatmo client credentials.
-* tokens.json --> Netatmo (weather station) access/refresh tokens (access_token, expires_in, scope, refresh_token), paired with authConf.json. Refreshed automatically on a 403 from api.netatmo.com.
+* tokens.json --> Netatmo (weather station) access/refresh tokens (access_token, expires_in, scope, refresh_token), paired with authConf.json. Refreshed automatically before the access token expires (expires_at, written by this app) and on a 401/403 from api.netatmo.com.
 
 ### Particle
 

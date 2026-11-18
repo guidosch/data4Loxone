@@ -10,11 +10,6 @@ app.listen(config.port, () => {
 })
 
 
-schedule.scheduleJob("59 * * * * *", function () {
-    //todo : only needed if I like to cache netatmo result and reuse in other calls
-    //readFromNetatmoAPIMock();
-});
-
 //send netatmo data to lametric 
 schedule.scheduleJob("30 * * * * *", function () {
     LametricHandler.sendNetatmoToLaMetric();

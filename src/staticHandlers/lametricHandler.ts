@@ -1,12 +1,18 @@
 import axios from "axios";
-import { MainStation } from '../logic/devices';
-import NetatmoAxiosInterceptor from '../logic/netatmoRequestResponseInterceptor'
+import { getStationsData } from '../logic/netatmoStationsData';
+import { describeError } from '../logic/errorUtils';
 import { Stationsdata } from "../types/stationsData";
 import { MeteoOpenData } from "../types/meteoOpenData";
 
+const LAMETRIC_URL: string = process.env["LAMETRIC_URL"] || "http://192.168.2.32:8080";
+const LAMETRIC_API_KEY: string = process.env["LAMETRIC_API_KEY"] || "";
+if (!LAMETRIC_API_KEY) {
+    console.warn("LAMETRIC_API_KEY not set in .env, sending to Lametric will fail with 401");
+}
+
 //create axios instance for lametric
 const axiosInstance = axios.create({
-    baseURL: 'http://192.168.2.32:8080',
+    baseURL: LAMETRIC_URL,
     timeout: 5000,
     headers: {
         "Content-Type": "application/json",
@@ -14,60 +20,45 @@ const axiosInstance = axios.create({
     },
     auth: {
         username: 'dev',
-        password: 'a06055aec93a298ea3672c7d81ba7d2b4fa14933654a245831d335233c43e00f'
+        password: LAMETRIC_API_KEY
     }
 });
 
 const SMA_URL: string = process.env["SMA_OPENDATA_URL"] || "url not set";
-const netatmoHTTPClient = new NetatmoAxiosInterceptor();
-const config = {
-    params: MainStation
-}
 
-// Lametric frame post data format
-let frames: Object[] = [];
-let laMetricFrame = {
-    icon_type: "none",
-    model: {
-        frames: frames,
-        cycles: 2
-    }
-};
+type LametricFrame = { icon: string, text: string | number };
+
+/** Lametric answers 400 while in night/sleep mode; only log when this state changes */
+let lametricSleeping = false;
 
 export class LametricHandler {
 
     static async sendNetatmoToLaMetric() {
-
+        let stationsdata: Stationsdata;
         try {
-            let response = await netatmoHTTPClient.get('api/getstationsdata', config);
-
-            if (response.status == 200) {
-                const stationsdata: Stationsdata = response.data.body.devices[0];
-                const temp = stationsdata.dashboard_data.Temperature.toFixed(1)
-
-                laMetricFrame.model.frames.push({ "icon": "i2355", "text": temp + "°C In" });
-                laMetricFrame.model.frames.push({ "icon": "i12785", "text": stationsdata.dashboard_data.CO2 });
-                laMetricFrame.model.frames.push({ "icon": "i3359", "text": stationsdata.dashboard_data.Humidity + "%" });
-
-                sendToLametric();
-            } else {
-                console.log("Error getting data from netatmo. HTTP Status: " + response.status + " " + response.statusText);
-            }
+            stationsdata = await getStationsData();
         } catch (error) {
-            console.error("Netatmo API error: " + JSON.stringify(error));
+            // already logged in getStationsData()
+            return;
         }
+        const temp = stationsdata.dashboard_data.Temperature.toFixed(1);
+        sendToLametric([
+            { "icon": "i2355", "text": temp + "°C In" },
+            { "icon": "i12785", "text": stationsdata.dashboard_data.CO2 },
+            { "icon": "i3359", "text": stationsdata.dashboard_data.Humidity + "%" }
+        ]);
     }
 
     //send SMA station data to lametric
     static async sendMeteoDataToLaMetric() {
-        //todo ip configurable
-        let response = axios.get<MeteoOpenData>(SMA_URL).then(function (response) {
+        axios.get<MeteoOpenData>(SMA_URL, { timeout: 10000 }).then(function (response) {
             if (response.status == 200) {
-                let data: MeteoOpenData = response.data;
+                const data: MeteoOpenData = response.data;
+                const frames: LametricFrame[] = [];
 
-                laMetricFrame.model.frames.push({ "icon": "i2355", "text": data.temperature + "°C Out" });
+                frames.push({ "icon": "i2355", "text": data.temperature + "°C Out" });
 
-                var rain = parseFloat(data.precipitation);
+                const rain = parseFloat(data.precipitation);
                 /**
                  * todo
                  * Regen:
@@ -77,44 +68,49 @@ export class LametricHandler {
                     sehr stark: Niederschlagshöhe in 60 Minuten ≥ 50,0 mm, in 10 Minuten ≥ 8,3
                  */
                 if (rain > 0) {
-                    laMetricFrame.model.frames.push({ "icon": "i2416", "text": rain + "mm" });
+                    frames.push({ "icon": "i2416", "text": rain + "mm" });
                 }
-                laMetricFrame.model.frames.push({ "icon": "i9095", "text": Number.parseFloat(data.windSpeed).toFixed(1) + "/" + Number.parseFloat(data.gustPeak).toFixed(1) + "km/h" });
+                frames.push({ "icon": "i9095", "text": Number.parseFloat(data.windSpeed).toFixed(1) + "/" + Number.parseFloat(data.gustPeak).toFixed(1) + "km/h" });
 
-                sendToLametric();
+                sendToLametric(frames);
             }
         }).catch(function (error) {
-            if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-            } else if (error.request) {
-                console.log(error.request);
-            } else {
-                console.log('Error', error.message);
-            }
-            console.log(error.toJSON());
+            console.error("Error getting data from local SMA service: " + describeError(error));
         });
 
     }
 
 }
-function sendToLametric() {
-    console.log(`Sending to lametric: ${JSON.stringify(laMetricFrame)}`);
-    axiosInstance.defaults.headers["Content-Length"] = Buffer.byteLength(JSON.stringify(laMetricFrame), "utf8");
-    axiosInstance.post("/api/v2/device/notifications", laMetricFrame).then(function (response) {
-        if (response.status == 201) {
+
+function sendToLametric(frames: LametricFrame[]) {
+    const laMetricFrame = {
+        icon_type: "none",
+        model: {
+            frames: frames,
+            cycles: 2
+        }
+    };
+    if (!lametricSleeping) {
+        console.log(`Sending to lametric: ${JSON.stringify(laMetricFrame)}`);
+    }
+    axiosInstance.post("/api/v2/device/notifications", laMetricFrame, {
+        headers: { "Content-Length": Buffer.byteLength(JSON.stringify(laMetricFrame), "utf8") }
+    }).then(function (response) {
+        if (lametricSleeping) {
+            lametricSleeping = false;
+            console.log("Lametric is awake again, accepted data");
+        } else if (response.status == 201) {
             console.log(`Lametric accepted data`);
         }
     }).catch(function (error) {
         if (error.response?.status === 400) {
-            // LaMetric rejects notifications while in night/sleep mode; not worth a full error dump
-            console.log("Lametric returned 400 Bad Request. This means it is sleeping.");
+            // LaMetric rejects notifications while in night/sleep mode; log only the transition
+            if (!lametricSleeping) {
+                lametricSleeping = true;
+                console.log("Lametric returned 400 Bad Request. It is sleeping, suppressing further logs until it is awake again.");
+            }
         } else {
-            console.log("Error sending to LaMetric: " + JSON.stringify(error));
+            console.error("Error sending to LaMetric: " + describeError(error));
         }
-    }).finally(function () {
-        laMetricFrame.model.frames = [];
     });
 }
-

@@ -3,7 +3,7 @@ import { MeteoOpenData } from '../types/meteoOpenData'
 import { MeteoOpenDataAPIStatus } from '../types/metoDataApiStatus'
 import axios from 'axios';
 import moment from 'moment';
-import e from 'cors';
+import { describeError } from '../logic/errorUtils';
 
 const MAX_DATA_AGE = 25 * 60 * 1000; // 25 minutes
 const SMA_URL = process.env["SMA_OPENDATA_URL"] || "url not set";
@@ -14,7 +14,7 @@ const SMA_URL = process.env["SMA_OPENDATA_URL"] || "url not set";
  */
 const getRoot: RequestHandler = (req, res) => {
 
-  axios.get<MeteoOpenData>(SMA_URL).then(function (response) {
+  axios.get<MeteoOpenData>(SMA_URL, { timeout: 10000 }).then(function (response) {
     if (response.status == 200) {
       let data: MeteoOpenData = response.data;
       let result = <MeteoOpenDataAPIStatus>{};
@@ -38,16 +38,8 @@ const getRoot: RequestHandler = (req, res) => {
       console.log("Error getting data from local SMA service: " + SMA_URL + " status: " + status);
     }
   }).catch(function (error) {
-    if (error.response) {
-      console.log(error.response.data);
-      console.log(error.response.status);
-      console.log(error.response.headers);
-    } else if (error.request) {
-      console.log(error.request);
-    } else {
-      console.log('Error', error.message);
-    }
-    console.log(error.toJSON());
+    console.error("Error getting data from local SMA service: " + describeError(error));
+    res.status(503).json({ error: "Error getting data from local SMA service: " + SMA_URL });
   });
 
 }

@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { AuthConf, TokenResponse } from '../types/auth';
 import { ParticleEvent } from '../types/particleEvent';
+import { describeError } from './errorUtils';
 
 /**
  * config: Set base path for files
@@ -67,10 +68,10 @@ export default class AxiosInterceptor {
                 // Retry the original request with new token
                 return this.axiosInstance.request(error.config);
             } catch (err: any) {
-                console.error("Error authenticate status: " + JSON.stringify(err));
+                console.error("Error authenticating with particle: " + describeError(err));
             }
         }
-        console.error("Error: " + JSON.stringify(error));
+        // logged by the caller
         return Promise.reject(error);
     }
 

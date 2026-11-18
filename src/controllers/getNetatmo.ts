@@ -1,42 +1,40 @@
 import { RequestHandler } from 'express'
-import AxiosInterceptor from '../logic/netatmoRequestResponseInterceptor'
-import { MainStation } from '../logic/devices';
+import { getStationsData } from '../logic/netatmoStationsData';
+import { describeError } from '../logic/errorUtils';
 import { ModuleDashboardData, Stationsdata } from '../types/stationsData';
 import { NetatmoStationsData, fallbackNetatmoData } from '../types/netatmoStationsData4Loxone';
 
-const axiosInterceptor = new AxiosInterceptor();
-const config = {
-    params: MainStation
-}
 const getRoot: RequestHandler = async (req, res) => {
+    let stationsdata: Stationsdata;
     try {
-        let response = await axiosInterceptor.get('api/getstationsdata', config);
-        if (response.status === 200) {
-            const stationsdata: Stationsdata = response.data.body.devices[0];
-
-            let roomModule = getModuleData(stationsdata, "Zimmer");
-            let outdoorModule = getModuleData(stationsdata, "Outdoor");
-
-            let netatmoStationsData: NetatmoStationsData = {
-                temperatureMain: stationsdata.dashboard_data.Temperature,
-                co2Main: stationsdata.dashboard_data.CO2,
-                humidityMain: stationsdata.dashboard_data.Humidity - 5,
-                temperatureRoom: roomModule?.Temperature || 23,
-                co2Room: roomModule?.CO2 || 500,
-                humidityRoom: roomModule?.Humidity || 50,
-                temperatureOutside: outdoorModule?.Temperature || 20,
-                humidityOutside: outdoorModule?.Humidity || 50,
-                lastUpdateSecondsAgo: Math.round(Date.now() / 1000) - (stationsdata.dashboard_data.time_utc),
-                error: "no error"
-            }
-            res.status(200).json(netatmoStationsData);
-        } else {
-            console.warn("Netatmo API unexpected status: " + response.status);
-            res.status(503).json(fallbackNetatmoData);
-        }
+        stationsdata = await getStationsData();
     } catch (error) {
+        // already logged in getStationsData()
         res.status(503).json(fallbackNetatmoData);
-        console.error("Netatmo API error: " + JSON.stringify(error));
+        return;
+    }
+
+    try {
+
+        let roomModule = getModuleData(stationsdata, "Zimmer");
+        let outdoorModule = getModuleData(stationsdata, "Outdoor");
+
+        let netatmoStationsData: NetatmoStationsData = {
+            temperatureMain: stationsdata.dashboard_data.Temperature,
+            co2Main: stationsdata.dashboard_data.CO2,
+            humidityMain: stationsdata.dashboard_data.Humidity - 5,
+            temperatureRoom: roomModule?.Temperature || 23,
+            co2Room: roomModule?.CO2 || 500,
+            humidityRoom: roomModule?.Humidity || 50,
+            temperatureOutside: outdoorModule?.Temperature || 20,
+            humidityOutside: outdoorModule?.Humidity || 50,
+            lastUpdateSecondsAgo: Math.round(Date.now() / 1000) - (stationsdata.dashboard_data.time_utc),
+            error: "no error"
+        }
+        res.status(200).json(netatmoStationsData);
+    } catch (error) {
+        console.error("Error mapping Netatmo data: " + describeError(error));
+        res.status(503).json(fallbackNetatmoData);
     }
 
 }

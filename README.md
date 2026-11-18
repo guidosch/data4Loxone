@@ -33,6 +33,8 @@ See: https://docs.docker.com/engine/storage/volumes/
 
 ## Build and Deployment after code change
 
+--> use the redeploy script on raspi (see onRaspberryPi folder)
+
 1. Update GIT repo on raspi
 2. Copy recent tokens to files that are mounted to container
 3. Stop service
